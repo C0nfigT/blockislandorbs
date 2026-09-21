@@ -568,15 +568,23 @@ def year_of(doc):
     return None
 
 
-def month_of(doc):
+def listing_date(doc):
+    """Calendar day on the registry page. Times are midnight Eastern, so the date prefix is the day."""
     raw = doc.get("startDate") or ""
-    if len(raw) < 10:
+    if len(raw) < 10 or raw[4] != "-" or raw[7] != "-":
+        return None
+    return raw[:10]
+
+
+def month_of(doc):
+    day = listing_date(doc)
+    if not day:
         return None
     # Archive imports were all stamped January 1 and are not real months.
-    if raw[5:10] == "01-01":
+    if day[5:10] == "01-01":
         return None
     try:
-        month = int(raw[5:7])
+        month = int(day[5:7])
     except ValueError:
         return None
     return month if 1 <= month <= 12 else None
@@ -624,6 +632,7 @@ def main():
             "n": float_number(doc.get("title") or ""),
             "year": year,
             "month": month_of(doc),
+            "date": listing_date(doc),
             "title": re.sub(r"\s+", " ", (doc.get("title") or "").strip()),
             "where": location,
             "place": pid,
@@ -666,6 +675,7 @@ def main():
                 "Finders describe a place in words. The registry map pins are almost all "
                 "the tourism office, so each dot is matched to a named spot on the island "
                 "Trail finds are spread along the OpenStreetMap footpaths. Other finds are nudged slightly so they can form a heat map. "
+                "Each find keeps the registry listing date. "
                 "Months before 2024 were not recorded; those finds were imported on January 1."
             ),
         },

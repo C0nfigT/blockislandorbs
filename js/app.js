@@ -174,16 +174,30 @@ function redrawDots() {
   findsLayer.redraw();
 }
 
+function foundOn(find) {
+  const day = find.date || "";
+  // The archive import stamped every older find as January 1. That is not a found-on day.
+  if (day.length < 10 || day.slice(5) === "01-01") {
+    return `${find.year} · no day recorded`;
+  }
+  const year = Number(day.slice(0, 4));
+  const month = Number(day.slice(5, 7));
+  const date = Number(day.slice(8, 10));
+  const pretty = `${MONTHS[month - 1]} ${date}, ${year}`;
+  const when = `Found ${pretty}`;
+  return year !== find.year ? `${when} · ${find.year} float` : when;
+}
+
 function onMapClick(event) {
   const find = hitFind(event.containerPoint);
   if (!find) return;
-  const when = find.month ? `${MONTHS[find.month - 1]} ${find.year}` : String(find.year);
   const num = find.n != null ? `#${find.n} · ` : "";
   L.popup({ maxWidth: 260 })
     .setLatLng(event.latlng)
     .setContent(
       `<div class="popup"><h3>${escapeHtml(num + find.title)}</h3>
-       <p>${escapeHtml(find.where || "No description")} · ${when}</p>
+       <p>${escapeHtml(foundOn(find))}</p>
+       <p>${escapeHtml(find.where || "No description")}</p>
        <p>Near ${escapeHtml(placeName(find.place) || "an unnamed spot")}.</p>
        ${find.url ? `<p><a href="https://www.blockislandinfo.com${find.url}" target="_blank" rel="noopener">Registry entry</a></p>` : ""}
        </div>`
@@ -445,7 +459,7 @@ function openPlace(id) {
   }
   const list = matches
     .slice(0, 4)
-    .map((find) => `<li>${escapeHtml(find.where)} <span style="color:#5e6a62">· ${find.year}</span></li>`)
+    .map((find) => `<li>${escapeHtml(find.where)} <span style="color:#5e6a62">· ${escapeHtml(foundOn(find))}</span></li>`)
     .join("");
   if (window.innerWidth <= 820) setPanelOpen(false);
   map.flyTo([place.lat, place.lng], Math.max(map.getZoom(), 15), { duration: 0.45 });
@@ -598,7 +612,7 @@ function bind() {
 }
 
 async function start() {
-  const response = await fetch("data/finds.json?v=18");
+  const response = await fetch("data/finds.json?v=19");
   if (!response.ok) throw new Error("Could not load find data");
   data = await response.json();
   state.places = new Map(data.places.map((place) => [place.id, place]));

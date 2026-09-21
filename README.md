@@ -28,7 +28,7 @@ Finds are the public registry at the [Block Island Tourism Council](https://www.
 
 Finders describe a place in words (“Rodman’s Hollow”, “in a tree on Clay Head”). The registry’s own map coordinates are almost all the tourism office, so they are not used. `scripts/build_finds.py` matches each description to a named place on the island and nudges the dot a short, stable distance so a crowd of finds becomes a heat map instead of one stacked point.
 
-Months are the registration date. Finds copied in from the archive were stamped January 1 and are treated as undated. A month filter is meaningful from 2024 on.
+Each find keeps the registry listing date (the day on the found-floats page). Clicking a dot shows that day. Finds copied in from the archive were stamped January 1 and are treated as undated, so a month filter is meaningful from 2024 on.
 
 This is a map of past reports, not of where floats are hidden now.
 
