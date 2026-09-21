@@ -71,7 +71,9 @@ PLACES = [
      ["southeast lighthouse", "southeast light", "south east light", "se light", "se lighthouse"]),
     ("north-light", "North Light", 41.2273, -71.5762, 220,
      ["north lighthouse", "north light", "northern lighthouse", "northern light", "northlight", "block island north"]),
-    ("sandy-point", "Sandy Point", 41.2305, -71.5765, 250,
+    # On the north spit. The previous pin was just offshore, and the
+    # shoreward pull walked past the spit into New Harbor.
+    ("sandy-point", "Sandy Point", 41.22710, -71.57630, 90,
      ["sandy point", "settlers rock", "settler s rock", "settlers", "settler"]),
     ("sachem-pond", "Sachem Pond", 41.2200, -71.5705, 300,
      ["sachem pond", "sachem", "little sachem"]),
@@ -119,7 +121,9 @@ PLACES = [
     # east of that, so the wide trail search also grabbed the airport paths.
     ("harrison", "Harrison Trail", 41.17816, -71.58308, 80,
      ["harrison trail", "harrison loop", "harrison"]),
-    ("old-mill", "Old Mill Road", 41.1690, -71.5760, 280,
+    # The road and its greenway are west of the airport. The old anchor
+    # was a kilometer east, so the dots landed on Meadow Hill and the airport.
+    ("old-mill", "Old Mill Road", 41.16470, -71.59320, 200,
      ["old mill"]),
     ("pilot-hill", "Pilot Hill", 41.1576, -71.5628, 200,
      ["pilot hill"]),
@@ -131,7 +135,9 @@ PLACES = [
      ["atwood overlook", "attwood overlook", "atwood", "attwood"]),
     ("ocean-view", "Ocean View", 41.1672, -71.5548, 200,
      ["ocean view", "ocean pavilion", "oceanic pavilion"]),
-    ("labyrinth", "Sacred Labyrinth", 41.1898, -71.5642, 80,
+    # West side of Corn Neck Road, above Sachem Pond. The old pin was
+    # in the ocean farther south, and every find was dragged to New Harbor.
+    ("labyrinth", "Sacred Labyrinth", 41.21710, -71.56600, 45,
      ["sacred labyrinth", "labyrinth", "labrynth", "labrinyth"]),
     ("legion-park", "Legion Park", 41.1708, -71.5608, 80,
      ["legion park", "legion", "the cannon", "cannon", "veterans memorial", "vfw"]),
@@ -169,8 +175,9 @@ PLACES = [
      ["long lot", "long lots", "longwood"]),
     ("solviken", "Solviken Preserve", 41.2095, -71.5780, 220,
      ["solviken", "solveiken"]),
-    ("island-cemetery", "Island Cemetery", 41.1700, -71.5680, 120,
-     ["island cemetery", "the cemetery", "cemetery"]),
+    # Beside Harrison Trail, above New Harbor. Not the spot near Old Town Road.
+    ("island-cemetery", "Island Cemetery", 41.17902, -71.58149, 70,
+     ["island cemetery", "block island cemetery", "the cemetery", "cemetery"]),
     ("indian-cemetery", "Indian Cemetery", 41.1688, -71.5705, 80,
      ["indian cemetery", "indian cemetary"]),
     ("dodge-cemetery", "Dodge Cemetery", 41.1663, -71.5964, 80,
@@ -197,9 +204,9 @@ PLACES = [
      ["baby beach"]),
     ("trims-pond", "Trim's Pond", 41.1798, -71.5717, 100,
      ["trims pond", "trim s pond"]),
-    ("settlers-area", "Cow Cove", 41.2268, -71.5720, 150,
+    ("settlers-area", "Cow Cove", 41.22380, -71.57380, 90,
      ["cow cove"]),
-    ("logwood", "Logwood Cove", 41.2212, -71.5773, 150,
+    ("logwood", "Logwood Cove", 41.21880, -71.57680, 90,
      ["logwood"]),
     ("charleston", "Charleston Beach", 41.1951, -71.5931, 160,
      ["charlestown beach", "charleston beach", "charlestown", "charleston"]),
@@ -211,7 +218,9 @@ PLACES = [
      ["hyland"]),
     ("murphy-cormier", "Murphy-Cormier Trail", 41.1688, -71.5810, 220,
      ["murphy cormier", "murphy comier", "cormier"]),
-    ("adrian-mitchell", "Adrian Mitchell Trail", 41.1708, -71.5768, 220,
+    # Leaves Ball O'Brien Park and runs inland. The old anchor was on
+    # the airport, so the dots joined that cluster.
+    ("adrian-mitchell", "Adrian Mitchell Trail", 41.17435, -71.56637, 80,
      ["adrian mitchell", "mitchell trail"]),
     ("gaffney", "Gaffney Trail", 41.1675, -71.5775, 200,
      ["gaffney"]),
@@ -221,7 +230,9 @@ PLACES = [
      ["magellan"]),
     ("overlook", "South Shore Overlook", 41.1525, -71.5580, 280,
      ["the overlook", "overlook"]),
-    ("greenway", "Greenway, place not specified", 41.1650, -71.5780, 700,
+    # No named preserve. Spread these along the long footpaths, not the
+    # short sidewalks at the airport that the old central anchor selected.
+    ("greenway", "Greenway, place not specified", 41.16600, -71.58000, 400,
      ["greenway", "green way"]),
     ("mosquito-beach", "Mosquito Beach", 41.1772, -71.5630, 120,
      ["mosquito beach", "mosquito"]),
@@ -340,9 +351,31 @@ def clear_of_water(lat, lng, margin_m=55):
     return True
 
 
+def nearby_land(lat, lng, predicate, max_m):
+    """Closest point that satisfies predicate, searching outward in rings.
+
+    A ray toward the middle of the island misses the north spit and the
+    east beaches, and drops those finds at New Harbor instead.
+    """
+    for radius in range(20, max_m + 1, 20):
+        for step in range(16):
+            theta = step * math.pi / 8
+            lat2 = lat + (radius * math.cos(theta)) / 111_320
+            lng2 = lng + (radius * math.sin(theta)) / (111_320 * math.cos(math.radians(lat)))
+            if predicate(lat2, lng2):
+                return lat2, lng2
+    return None
+
+
 def pull_ashore(lat, lng):
     if clear_of_water(lat, lng):
         return lat, lng
+    found = nearby_land(lat, lng, clear_of_water, 280)
+    if found:
+        return found
+    found = nearby_land(lat, lng, on_land, 450)
+    if found:
+        return found
     target_lat, target_lng = ISLAND_CENTER
     if not on_land(lat, lng):
         low, high = 0.0, 1.0
@@ -507,10 +540,15 @@ def main():
     for pid, _name, lat, lng, radius, _aliases in PLACES:
         if pid not in TRAIL_PLACES:
             continue
-        # These paths pass their own anchor. A wide search also reaches the
-        # airport footways and pulled every find onto them.
-        search = 80 if pid in {"meadow-hill", "harrison"} else min(800, max(radius + 160, 520))
-        lines = ways_near(lat, lng, search)
+        # A wide search around a bad anchor also reaches the airport
+        # footways. These places keep a tight radius, or, for an unnamed
+        # greenway, the long paths only.
+        if pid == "greenway":
+            lines = [line for line in TRAIL_LINES if sum(meters_between(a, b) for a, b in zip(line, line[1:])) >= 200]
+        else:
+            tight = {"meadow-hill": 80, "harrison": 80, "adrian-mitchell": 90, "old-mill": 220}
+            search = tight.get(pid, min(800, max(radius + 160, 520)))
+            lines = ways_near(lat, lng, search)
         net = index_lines(lines)
         if net[0] >= 120:
             trail_networks[pid] = net
