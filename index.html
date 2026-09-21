@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glass Float Atlas — Block Island</title>
+  <meta name="description" content="A heat map of where glass floats have been found on Block Island, from the public registry back to 2012.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div id="map" aria-label="Map of Block Island"></div>
+
+  <aside id="panel">
+    <header class="mast">
+      <div class="orb" aria-hidden="true"></div>
+      <div>
+        <p class="kicker">Block Island</p>
+        <h1>Glass Float Atlas</h1>
+      </div>
+    </header>
+    <p class="lede" id="lede">Loading finds…</p>
+
+    <label class="search">
+      <span>Search a place or finder</span>
+      <input id="q" type="search" placeholder="Rodman’s, bluffs, maze…" autocomplete="off">
+    </label>
+
+    <section>
+      <div class="section-head">
+        <h2>Year</h2>
+        <span class="actions">
+          <button type="button" id="all-years" class="text-btn">All</button>
+          <button type="button" id="none-years" class="text-btn">Unselect all</button>
+        </span>
+      </div>
+      <div id="years" class="chips" role="group" aria-label="Filter by year"></div>
+      <p class="hint">Highlighted years are on the map. Click a year to add or remove its finds.</p>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Month found</h2>
+        <span class="actions">
+          <button type="button" id="all-months" class="text-btn">All</button>
+          <button type="button" id="none-months" class="text-btn">Unselect all</button>
+        </span>
+      </div>
+      <div id="months" class="months" role="group" aria-label="Filter by month"></div>
+      <p class="hint" id="month-hint"></p>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Suggested search</h2>
+        <button type="button" id="toggle-suggest" class="text-btn" aria-pressed="false">Show</button>
+      </div>
+      <p class="hint" id="suggest-hint">Places with orbs in this month in earlier years, and few reports in the current month or the month before.</p>
+    </section>
+
+    <section class="stats" id="stats" aria-live="polite"></section>
+
+    <section>
+      <h2 id="places-heading">Where they turn up</h2>
+      <ol id="places" class="places"></ol>
+    </section>
+
+    <footer class="colophon">
+      <p>Past finds only. This is not a map of where floats are hidden now.</p>
+      <p>Locations come from finders’ own words on the <a href="https://www.blockislandinfo.com/glass-float-project/found-floats/?bounds=false&view=list&sort=date" target="_blank" rel="noopener">Block Island Tourism Council registry</a> and the <a href="https://www.blockislandinfo.com/glass-float-project/found-float-archives/" target="_blank" rel="noopener">archive</a>. Trail lines are the public footpath network from OpenStreetMap. Finds named for a trail are spread along that path instead of in a circle.</p>
+    </footer>
+  </aside>
+
+  <div class="tools" role="toolbar" aria-label="Map layers">
+    <div class="tool-group" id="basemap">
+      <button type="button" data-base="imagery" aria-pressed="true">Satellite</button>
+      <button type="button" data-base="topo" aria-pressed="false">Terrain</button>
+    </div>
+    <div class="tool-group" id="layers">
+      <button type="button" id="toggle-heat" aria-pressed="true">Heat</button>
+      <button type="button" id="toggle-trails" aria-pressed="true">Trails</button>
+      <button type="button" id="toggle-pins" aria-pressed="true">Finds</button>
+    </div>
+  </div>
+
+  <div class="legend" id="legend">
+    <span>Fewer</span>
+    <i></i>
+    <span>More finds</span>
+  </div>
+
+  <button type="button" id="panel-toggle" class="panel-toggle" aria-expanded="true">List</button>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/app.js?v=10"></script>
+</body>
+</html>
