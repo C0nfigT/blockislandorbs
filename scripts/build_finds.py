@@ -121,9 +121,9 @@ PLACES = [
     # east of that, so the wide trail search also grabbed the airport paths.
     ("harrison", "Harrison Trail", 41.17816, -71.58308, 80,
      ["harrison trail", "harrison loop", "harrison"]),
-    # The road and its greenway are west of the airport. The old anchor
-    # was a kilometer east, so the dots landed on Meadow Hill and the airport.
-    ("old-mill", "Old Mill Road", 41.16470, -71.59320, 200,
+    # The paved road from Cooneymus toward West Side Road. Finds follow
+    # that centerline, not the greenway paths that only cross it.
+    ("old-mill", "Old Mill Road", 41.16475, -71.59232, 40,
      ["old mill"]),
     ("pilot-hill", "Pilot Hill", 41.1576, -71.5628, 200,
      ["pilot hill"]),
@@ -410,14 +410,24 @@ def meters_between(a, b):
 def load_trail_lines():
     geo = json.loads(TRAILS.read_text())
     lines = []
+    named = {}
     for feature in geo["features"]:
         coords = [(point[1], point[0]) for point in feature["geometry"]["coordinates"]]
-        if len(coords) >= 2:
-            lines.append(coords)
-    return lines
+        if len(coords) < 2:
+            continue
+        name = (feature.get("properties") or {}).get("name") or ""
+        # The road is only for Old Mill finds. Leaving it in the shared
+        # path list would smear nearby trails along the pavement.
+        if name == "Old Mill Road":
+            named.setdefault(name, []).append(coords)
+            continue
+        lines.append(coords)
+        if name:
+            named.setdefault(name, []).append(coords)
+    return lines, named
 
 
-TRAIL_LINES = load_trail_lines()
+TRAIL_LINES, NAMED_LINES = load_trail_lines()
 
 
 def ways_near(lat, lng, radius_m):
@@ -545,8 +555,10 @@ def main():
         # greenway, the long paths only.
         if pid == "greenway":
             lines = [line for line in TRAIL_LINES if sum(meters_between(a, b) for a, b in zip(line, line[1:])) >= 200]
+        elif pid == "old-mill":
+            lines = NAMED_LINES.get("Old Mill Road", [])
         else:
-            tight = {"meadow-hill": 80, "harrison": 80, "adrian-mitchell": 90, "old-mill": 220}
+            tight = {"meadow-hill": 80, "harrison": 80, "adrian-mitchell": 90}
             search = tight.get(pid, min(800, max(radius + 160, 520)))
             lines = ways_near(lat, lng, search)
         net = index_lines(lines)
