@@ -114,7 +114,10 @@ PLACES = [
      ["meadow hill", "meadow hills"]),
     ("beacon-hill", "Beacon Hill", 41.1757, -71.5910, 250,
      ["beacon hill", "beacon hollow"]),
-    ("harrison", "Harrison Trail", 41.1738, -71.5785, 280,
+    # Great Salt Pond to Beacon Hill: the path from Jane Lane at West Side
+    # Road, past Island Cemetery, to Beacon Hill Road. The old anchor was
+    # east of that, so the wide trail search also grabbed the airport paths.
+    ("harrison", "Harrison Trail", 41.17816, -71.58308, 80,
      ["harrison trail", "harrison loop", "harrison"]),
     ("old-mill", "Old Mill Road", 41.1690, -71.5760, 280,
      ["old mill"]),
@@ -504,9 +507,9 @@ def main():
     for pid, _name, lat, lng, radius, _aliases in PLACES:
         if pid not in TRAIL_PLACES:
             continue
-        # Meadow Hill's own path passes the anchor. A wide search also
-        # reaches the airport footways and pulled every find onto them.
-        search = 80 if pid == "meadow-hill" else min(800, max(radius + 160, 520))
+        # These paths pass their own anchor. A wide search also reaches the
+        # airport footways and pulled every find onto them.
+        search = 80 if pid in {"meadow-hill", "harrison"} else min(800, max(radius + 160, 520))
         lines = ways_near(lat, lng, search)
         net = index_lines(lines)
         if net[0] >= 120:
