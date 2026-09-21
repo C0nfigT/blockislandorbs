@@ -34,7 +34,7 @@ html, body {
   background: #b7c4bc;
 }
 
-.atlas-canvas {
+.finds-svg {
   position: absolute;
   left: 0;
   top: 0;
@@ -64,6 +64,17 @@ html, body {
   font-size: 2rem;
   letter-spacing: -0.03em;
   line-height: 0.95;
+}
+
+.dedication {
+  margin: 8px 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 520;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: #9c4530;
 }
 
 #panel h2 {
@@ -323,32 +334,7 @@ section { margin-top: 18px; }
 
 .radius input { width: 92px; accent-color: var(--sea); }
 
-body.heat-off .legend { display: none; }
-
-.legend {
-  position: absolute;
-  z-index: 500;
-  right: 14px;
-  bottom: 86px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--sand);
-  border-radius: 999px;
-  box-shadow: var(--shadow);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.legend i {
-  width: 92px;
-  height: 8px;
-  border-radius: 99px;
-  background: linear-gradient(90deg, rgba(14, 77, 108, 0.2), #1f8a7a 35%, #e2b15a 68%, #e06a32);
-}
+.sheet-bar { display: none; }
 
 .panel-toggle { display: none; }
 
@@ -421,29 +407,88 @@ body.heat-off .legend { display: none; }
 
 @media (max-width: 820px) {
   #panel {
+    display: none;
     top: auto;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100%;
-    max-height: 58vh;
+    max-height: min(74vh, 100%);
     border-radius: 18px 18px 0 0;
+    padding: 0 18px calc(18px + env(safe-area-inset-bottom));
   }
 
-  #panel.is-hidden { display: none; }
+  #panel.is-open { display: block; }
+
+  .sheet-bar {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 -18px 8px;
+    padding: 8px 18px 10px;
+    background: var(--sand);
+  }
+
+  .grabber {
+    width: 40px;
+    height: 4px;
+    margin: 2px auto 10px;
+    border-radius: 99px;
+    background: rgba(28, 38, 34, 0.22);
+  }
+
+  .sheet-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sheet-actions button {
+    flex: 1;
+    min-height: 44px;
+    border: 0;
+    border-radius: 999px;
+    font: 600 0.95rem var(--sans);
+    cursor: pointer;
+  }
+
+  #show-map {
+    background: var(--sea-deep);
+    color: #f4f7f2;
+  }
+
+  #reset-filters {
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .chips button, .months button { min-height: 36px; }
 
   .tools { top: 10px; right: 10px; }
-  .legend, body.heat-off .legend { display: none; }
 
-  .panel-toggle {
-    display: block;
-    position: absolute;
-    z-index: 600;
-    left: 10px;
-    bottom: 10px;
-    background: var(--sand);
-    box-shadow: var(--shadow);
+  .leaflet-bottom.leaflet-right {
+    bottom: calc(68px + env(safe-area-inset-bottom));
   }
 
-  #panel:not(.is-hidden) ~ .panel-toggle { bottom: auto; top: 10px; }
+  .panel-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    z-index: 600;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    min-height: 48px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--sea-deep);
+    color: #f4f7f2;
+    box-shadow: var(--shadow);
+    font: 600 0.98rem var(--sans);
+  }
+
+  #panel.is-open ~ .panel-toggle { display: none; }
 }

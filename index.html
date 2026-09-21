@@ -3,23 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Glass Float Atlas — Block Island</title>
-  <meta name="description" content="A heat map of where glass floats have been found on Block Island, from the public registry back to 2012.">
+  <title>Glass Float Atlas — For Rich &amp; Cat</title>
+  <meta name="description" content="A Block Island glass float map for Rich and Cat, from the public registry back to 2012.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,520;0,9..144,640;1,9..144,520&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/app.css?v=12">
 </head>
 <body>
   <div id="map" aria-label="Map of Block Island"></div>
 
   <aside id="panel">
+    <div class="sheet-bar">
+      <div class="grabber" aria-hidden="true"></div>
+      <div class="sheet-actions">
+        <button type="button" id="show-map">Show map</button>
+        <button type="button" id="reset-filters">Reset</button>
+      </div>
+    </div>
     <header class="mast">
       <div class="orb" aria-hidden="true"></div>
       <div>
         <p class="kicker">Block Island</p>
         <h1>Glass Float Atlas</h1>
+        <p class="dedication">For Rich &amp; Cat</p>
       </div>
     </header>
     <p class="lede" id="lede">Loading finds…</p>
@@ -80,21 +88,16 @@
       <button type="button" data-base="topo" aria-pressed="false">Terrain</button>
     </div>
     <div class="tool-group" id="layers">
-      <button type="button" id="toggle-heat" aria-pressed="true">Heat</button>
       <button type="button" id="toggle-trails" aria-pressed="true">Trails</button>
       <button type="button" id="toggle-pins" aria-pressed="true">Finds</button>
     </div>
   </div>
 
-  <div class="legend" id="legend">
-    <span>Fewer</span>
-    <i></i>
-    <span>More finds</span>
-  </div>
-
-  <button type="button" id="panel-toggle" class="panel-toggle" aria-expanded="true">List</button>
+  <button type="button" id="panel-toggle" class="panel-toggle" aria-expanded="false" aria-controls="panel">
+    <span id="panel-toggle-label">Filters &amp; list</span>
+  </button>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>

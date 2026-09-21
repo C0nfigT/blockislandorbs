@@ -1,6 +1,6 @@
 # Glass Float Atlas
 
-A map of Block Island showing where glass floats have been reported found, from 2012 through the current season. Filter by year and by month, and switch between a heat overlay and individual finds.
+A map of Block Island showing where glass floats have been reported found, from 2012 through the current season. Filter by year and by month. Trails and individual finds are on by default.
 
 ## Run it
 

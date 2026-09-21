@@ -1,13 +1,7 @@
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const ISLAND = L.latLngBounds([41.141, -71.622], [41.234, -71.536]);
-const HEAT_STOPS = [
-  [0.12, [14, 77, 108, 0]],
-  [0.28, [14, 77, 108, 150]],
-  [0.46, [31, 138, 122, 185]],
-  [0.66, [226, 177, 90, 205]],
-  [0.84, [224, 106, 50, 220]],
-  [1, [255, 244, 214, 230]],
-];
+const SVG_NS = "http://www.w3.org/2000/svg";
+const DOT = "m-4,0a4,4 0 1 0 8,0a4,4 0 1 0 -8,0";
 
 const state = {
   years: new Set(),
@@ -15,11 +9,9 @@ const state = {
   months: new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
   q: "",
   base: "imagery",
-  heat: true,
   pins: true,
   trails: true,
   suggest: false,
-  totalPlaced: 1,
   places: new Map(),
 };
 
@@ -67,64 +59,75 @@ map.getPane("markerPane").style.zIndex = "660";
 map.getPane("popupPane").style.zIndex = "700";
 
 const labelLayer = L.layerGroup().addTo(map);
-let dotRenderer = null;
-const dotLayer = L.layerGroup().addTo(map);
 let labelsShown = false;
 let data = null;
 let searchTimer = 0;
 let trailLayer = null;
 
-const atlas = L.Layer.extend({
+// One SVG path for every find. A fresh Leaflet canvas on each year toggle
+// eventually stops painting on mobile once the browser will not allocate
+// another full-screen bitmap.
+const FindsLayer = L.Layer.extend({
   onAdd(map) {
     this._map = map;
-    this._canvas = L.DomUtil.create("canvas", "atlas-canvas");
-    this._canvas.style.pointerEvents = "none";
-    this._ctx = this._canvas.getContext("2d", { alpha: true });
-    this._scratch = document.createElement("canvas");
-    this._scratchCtx = this._scratch.getContext("2d", { alpha: true });
-    map.getPanes().overlayPane.appendChild(this._canvas);
-    map.on("zoom zoomend moveend resize viewreset", this._schedule, this);
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "finds-svg");
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("fill", "#fff4e0");
+    path.setAttribute("fill-opacity", "0.92");
+    path.setAttribute("stroke", "#3c1c0c");
+    path.setAttribute("stroke-width", "1");
+    svg.appendChild(path);
+    map.getPane("finds").appendChild(svg);
+    this._svg = svg;
+    this._path = path;
+    map.on("moveend zoomend viewreset resize", this._reset, this);
     this._reset();
   },
 
   onRemove(map) {
-    map.off("zoom zoomend moveend resize viewreset", this._schedule, this);
-    L.DomUtil.remove(this._canvas);
+    map.off("moveend zoomend viewreset resize", this._reset, this);
+    L.DomUtil.remove(this._svg);
+    this._svg = null;
+    this._path = null;
   },
 
-  _schedule() {
-    if (this._frame) return;
-    this._frame = requestAnimationFrame(() => {
-      this._frame = 0;
-      this._reset();
-    });
+  redraw() {
+    this._reset();
   },
 
   _reset() {
-    if (!this._map) return;
+    if (!this._map || !this._svg) return;
     const size = this._map.getSize();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const width = Math.max(1, Math.round(size.x * dpr));
-    const height = Math.max(1, Math.round(size.y * dpr));
-    const previous = this._canvas;
-    // A new element every time. Chrome keeps the previous bitmap when a canvas
-    // inside the translated map pane is only cleared and redrawn.
-    this._canvas = L.DomUtil.create("canvas", "atlas-canvas");
-    this._canvas.style.pointerEvents = "none";
-    this._canvas.width = width;
-    this._canvas.height = height;
-    this._canvas.style.width = `${size.x}px`;
-    this._canvas.style.height = `${size.y}px`;
-    this._ctx = this._canvas.getContext("2d", { alpha: true });
-    L.DomUtil.setPosition(this._canvas, this._map.containerPointToLayerPoint([0, 0]));
-    paintAtlas(this, size, dpr);
-    const pane = this._map.getPanes().overlayPane;
-    if (previous && previous.parentNode === pane) pane.replaceChild(this._canvas, previous);
-    else pane.appendChild(this._canvas);
+    if (!size.x || !size.y) return;
+    L.DomUtil.setPosition(this._svg, this._map.containerPointToLayerPoint([0, 0]));
+    this._svg.setAttribute("width", size.x);
+    this._svg.setAttribute("height", size.y);
+    this._svg.style.width = `${size.x}px`;
+    this._svg.style.height = `${size.y}px`;
+    this._draw(size);
+  },
+
+  _draw(size) {
+    const path = this._path;
+    if (!path) return;
+    if (!state.pins || !view.finds.length) {
+      path.setAttribute("d", "");
+      return;
+    }
+    const finds = view.finds;
+    let d = "";
+    for (let i = 0; i < finds.length; i++) {
+      const find = finds[i];
+      const pt = this._map.latLngToContainerPoint([find.lat, find.lng]);
+      if (pt.x < -12 || pt.y < -12 || pt.x > size.x + 12 || pt.y > size.y + 12) continue;
+      d += `M${pt.x | 0},${pt.y | 0}${DOT}`;
+    }
+    path.setAttribute("d", d);
   },
 });
-const atlasLayer = new atlas();
-atlasLayer.addTo(map);
+const findsLayer = new FindsLayer();
+findsLayer.addTo(map);
 
 map.fitBounds(ISLAND, pad());
 map.on("zoomend", syncLabels);
@@ -135,7 +138,7 @@ const $ = (id) => document.getElementById(id);
 
 function pad() {
   const narrow = window.innerWidth <= 820;
-  if (narrow) return { paddingTopLeft: [16, 64], paddingBottomRight: [16, 180] };
+  if (narrow) return { paddingTopLeft: [16, 56], paddingBottomRight: [16, 96] };
   return { paddingTopLeft: [440, 30], paddingBottomRight: [30, 30] };
 }
 
@@ -147,137 +150,6 @@ function fold(value) {
   return String(value || "").toLowerCase().replace(/[’']/g, "");
 }
 
-function kernelPixels(zoom) {
-  // Shrink the screen blob as you zoom in so a preserve breaks into local hot spots
-  // instead of one circle that stays the same size on screen.
-  const shrunk = 26 * Math.pow(0.74, zoom - 13);
-  return Math.max(7, Math.min(72, shrunk));
-}
-
-function paintAtlas(layer, size, dpr) {
-  const ctx = layer._ctx;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, layer._canvas.width, layer._canvas.height);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  if (!view.finds.length) return;
-
-  const zoom = map.getZoom();
-  const bounds = map.getBounds();
-  const north = bounds.getNorth();
-  const south = bounds.getSouth();
-  const east = bounds.getEast();
-  const west = bounds.getWest();
-  const latPad = (north - south) * 0.25;
-  const lngPad = (east - west) * 0.25;
-  if (state.heat) {
-    const cell = 4;
-    const cols = Math.max(1, Math.ceil(size.x / cell));
-    const rows = Math.max(1, Math.ceil(size.y / cell));
-    const cells = cols * rows;
-    const grid = takeBuffer(layer, "grid", cells);
-    grid.fill(0, 0, cells);
-    const radius = kernelPixels(zoom);
-    for (let i = 0; i < view.finds.length; i++) {
-      const find = view.finds[i];
-      if (find.lat < south - latPad || find.lat > north + latPad || find.lng < west - lngPad || find.lng > east + lngPad) {
-        continue;
-      }
-      const point = map.latLngToContainerPoint([find.lat, find.lng]);
-      const x = (point.x / cell) | 0;
-      const y = (point.y / cell) | 0;
-      if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
-      grid[y * cols + x] += 1;
-    }
-    const blurred = soften(layer, grid, cols, rows, Math.max(1, Math.round(radius / cell)));
-    let peak = 1;
-    for (let i = 0; i < cells; i++) if (blurred[i] > peak) peak = blurred[i];
-    // Keep the scale tied to how many finds are in the filter, so turning a year
-    // off cools the map instead of stretching the remaining finds back to full heat.
-    const share = view.finds.length / state.totalPlaced;
-    const white = Math.max(1.4, peak * 0.62) / Math.min(1, Math.max(share, 0.18));
-    if (!layer._image || layer._image.width !== cols || layer._image.height !== rows) {
-      layer._image = layer._scratchCtx.createImageData(cols, rows);
-    }
-    const image = layer._image;
-    image.data.fill(0);
-    const pixels = image.data;
-    for (let i = 0; i < cells; i++) {
-      const sample = colorAt(blurred[i] / white);
-      if (!sample) continue;
-      const offset = i * 4;
-      pixels[offset] = sample[0];
-      pixels[offset + 1] = sample[1];
-      pixels[offset + 2] = sample[2];
-      pixels[offset + 3] = sample[3];
-    }
-    if (layer._scratch.width !== cols || layer._scratch.height !== rows) {
-      layer._scratch.width = cols;
-      layer._scratch.height = rows;
-    }
-    layer._scratchCtx.putImageData(image, 0, 0);
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(layer._scratch, 0, 0, cols, rows, 0, 0, cols * cell, rows * cell);
-  }
-
-}
-
-function takeBuffer(layer, slot, size) {
-  const key = `_${slot}`;
-  let buffer = layer[key];
-  if (!buffer || buffer.length < size) {
-    buffer = new Float32Array(size);
-    layer[key] = buffer;
-  }
-  return buffer;
-}
-
-function soften(layer, source, width, height, radius) {
-  const count = width * height;
-  const horizontal = blurAxis(layer, source, takeBuffer(layer, "blurA", count), width, height, radius, true);
-  return blurAxis(layer, horizontal, takeBuffer(layer, "blurB", count), width, height, radius, false);
-}
-
-function blurAxis(layer, source, dest, width, height, radius, horizontal) {
-  const length = horizontal ? width : height;
-  const lines = horizontal ? height : width;
-  const prefix = takeBuffer(layer, "prefix", length + 1);
-  for (let line = 0; line < lines; line++) {
-    prefix[0] = 0;
-    for (let i = 0; i < length; i++) {
-      const index = horizontal ? line * width + i : i * width + line;
-      prefix[i + 1] = prefix[i] + source[index];
-    }
-    for (let i = 0; i < length; i++) {
-      const start = Math.max(0, i - radius);
-      const end = Math.min(length - 1, i + radius);
-      const index = horizontal ? line * width + i : i * width + line;
-      dest[index] = (prefix[end + 1] - prefix[start]) / (end - start + 1);
-    }
-  }
-  return dest;
-}
-
-function colorAt(amount) {
-  if (amount < HEAT_STOPS[0][0]) return null;
-  const t = amount > 1 ? 1 : amount;
-  let left = HEAT_STOPS[0];
-  let right = HEAT_STOPS[HEAT_STOPS.length - 1];
-  for (let i = 1; i < HEAT_STOPS.length; i++) {
-    if (t <= HEAT_STOPS[i][0]) {
-      left = HEAT_STOPS[i - 1];
-      right = HEAT_STOPS[i];
-      break;
-    }
-  }
-  const span = right[0] - left[0] || 1;
-  const mix = (t - left[0]) / span;
-  return [
-    left[1][0] + (right[1][0] - left[1][0]) * mix,
-    left[1][1] + (right[1][1] - left[1][1]) * mix,
-    left[1][2] + (right[1][2] - left[1][2]) * mix,
-    left[1][3] + (right[1][3] - left[1][3]) * mix,
-  ];
-}
 
 function hitFind(containerPoint) {
   if (!state.pins || !view.finds.length) return null;
@@ -299,33 +171,7 @@ function hitFind(containerPoint) {
 }
 
 function redrawDots() {
-  dotLayer.clearLayers();
-  // Leaflet's canvas stays at 0×0 after the last marker is removed, so a
-  // reused renderer never paints again. Make a new one whenever finds return.
-  if (dotRenderer) {
-    if (map.hasLayer(dotRenderer)) map.removeLayer(dotRenderer);
-    dotRenderer = null;
-  }
-  if (!state.pins || !view.finds.length) return;
-  dotRenderer = L.canvas({ padding: 0.5, pane: "finds" });
-  for (let i = 0; i < view.finds.length; i++) {
-    const find = view.finds[i];
-    L.circleMarker([find.lat, find.lng], {
-      renderer: dotRenderer,
-      radius: 3.5,
-      weight: 1,
-      color: "#3c1c0c",
-      fillColor: "#fff4e0",
-      fillOpacity: 0.92,
-      interactive: false,
-    }).addTo(dotLayer);
-  }
-  if (dotRenderer._container) dotRenderer._container.style.pointerEvents = "none";
-  requestAnimationFrame(() => {
-    if (dotRenderer && dotRenderer._map) dotRenderer._update();
-    if (trailRenderer && trailRenderer._map) trailRenderer._update();
-    raiseTrails();
-  });
+  findsLayer.redraw();
 }
 
 function onMapClick(event) {
@@ -561,9 +407,9 @@ function apply() {
   renderHint(finds);
   labelsShown = map.getZoom() >= 13;
   drawLabels(view.counts);
-  document.body.classList.toggle("heat-off", !state.heat);
-  atlasLayer._reset();
   redrawDots();
+  const toggle = $("panel-toggle-label");
+  if (toggle && !$("panel").classList.contains("is-open")) toggle.textContent = filterButtonLabel();
 }
 
 function lede() {
@@ -601,6 +447,7 @@ function openPlace(id) {
     .slice(0, 4)
     .map((find) => `<li>${escapeHtml(find.where)} <span style="color:#5e6a62">· ${find.year}</span></li>`)
     .join("");
+  if (window.innerWidth <= 820) setPanelOpen(false);
   map.flyTo([place.lat, place.lng], Math.max(map.getZoom(), 15), { duration: 0.45 });
   L.popup({ maxWidth: 280 })
     .setLatLng([place.lat, place.lng])
@@ -610,6 +457,42 @@ function openPlace(id) {
        <ul>${list}</ul></div>`
     )
     .openOn(map);
+}
+
+function filterButtonLabel() {
+  const parts = [];
+  if (state.years.size !== state.allYears.length) {
+    parts.push(state.years.size ? `${state.years.size} years` : "no years");
+  }
+  if (state.months.size !== 12) {
+    parts.push(state.months.size ? `${state.months.size} months` : "no months");
+  }
+  if (state.suggest) parts.push("suggested");
+  if (state.q.trim()) parts.push("search");
+  return parts.length ? `Filters · ${parts.join(" · ")}` : "Filters & list";
+}
+
+function setPanelOpen(open) {
+  $("panel").classList.toggle("is-open", open);
+  $("panel-toggle").setAttribute("aria-expanded", String(open));
+  $("panel-toggle-label").textContent = open ? "Show map" : filterButtonLabel();
+  if (!open) {
+    setTimeout(() => {
+      map.invalidateSize();
+      findsLayer.redraw();
+    }, 50);
+  }
+}
+
+function resetFilters() {
+  state.years = new Set(state.allYears);
+  state.months = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  state.q = "";
+  state.suggest = false;
+  $("q").value = "";
+  $("toggle-suggest").setAttribute("aria-pressed", "false");
+  $("toggle-suggest").textContent = "Show";
+  apply();
 }
 
 function escapeHtml(value) {
@@ -685,14 +568,6 @@ function bind() {
       if (map.hasLayer(imagery)) map.removeLayer(imagery);
       if (!map.hasLayer(topo)) topo.addTo(map);
     }
-    labelLayer.bringToFront();
-  });
-
-  $("toggle-heat").addEventListener("click", (event) => {
-    state.heat = !state.heat;
-    event.currentTarget.setAttribute("aria-pressed", String(state.heat));
-    document.body.classList.toggle("heat-off", !state.heat);
-    atlasLayer._schedule();
   });
 
   $("toggle-trails").addEventListener("click", (event) => {
@@ -708,7 +583,6 @@ function bind() {
     state.pins = !state.pins;
     event.currentTarget.setAttribute("aria-pressed", String(state.pins));
     redrawDots();
-    raiseTrails();
   });
 
   $("toggle-suggest").addEventListener("click", (event) => {
@@ -718,12 +592,9 @@ function bind() {
     apply();
   });
 
-  $("panel-toggle").addEventListener("click", () => {
-    const hidden = $("panel").classList.toggle("is-hidden");
-    $("panel-toggle").setAttribute("aria-expanded", String(!hidden));
-    $("panel-toggle").textContent = hidden ? "List" : "Map";
-    setTimeout(() => map.invalidateSize(), 50);
-  });
+  $("panel-toggle").addEventListener("click", () => setPanelOpen(true));
+  $("show-map").addEventListener("click", () => setPanelOpen(false));
+  $("reset-filters").addEventListener("click", resetFilters);
 }
 
 async function start() {
@@ -739,7 +610,6 @@ async function start() {
   }
   state.allYears = [...new Set(data.finds.map((find) => find.year))].sort((a, b) => a - b);
   state.years = new Set(state.allYears);
-  state.totalPlaced = data.finds.reduce((sum, find) => sum + (find.lat != null ? 1 : 0), 0) || 1;
   buildFilters();
   bind();
   apply();
@@ -752,14 +622,8 @@ async function start() {
 }
 
 function raiseTrails() {
-  if (!trailLayer || !map.hasLayer(trailLayer)) return;
-  trailLayer.eachLayer((layer) => {
-    if (layer.bringToFront) layer.bringToFront();
-  });
   if (trailRenderer && trailRenderer._container) {
     trailRenderer._container.style.pointerEvents = "none";
-    const pane = map.getPane("finds");
-    if (pane && trailRenderer._container.parentNode === pane) pane.appendChild(trailRenderer._container);
   }
 }
 
@@ -769,16 +633,14 @@ async function loadTrails() {
   const response = await fetch("data/trails.geojson");
   if (!response.ok) return;
   const geo = await response.json();
-  // Same pane as the find dots, which is the one that actually paints above the
-  // heat canvas. A lower custom pane was ending up hidden under that canvas.
-  trailRenderer = L.canvas({ padding: 0.5, pane: "finds" });
+  trailRenderer = L.canvas({ padding: 0.5, pane: "trails" });
   const lines = [];
   for (const feature of geo.features) {
     const coords = feature.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
     if (coords.length < 2) continue;
     lines.push(L.polyline(coords, {
       renderer: trailRenderer,
-      pane: "finds",
+      pane: "trails",
       color: "#ffe7a3",
       weight: 3,
       opacity: 1,
