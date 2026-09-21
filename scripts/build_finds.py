@@ -107,7 +107,10 @@ PLACES = [
      ["transfer station", "dump beach", "the dump", "dump"]),
     ("beach-ave", "Beach Avenue", 41.1840, -71.5640, 240,
      ["beach avenue", "beach ave"]),
-    ("meadow-hill", "Meadow Hill", 41.1715, -71.5765, 300,
+    # West trailhead is the sign on Old Town Road a quarter mile past
+    # Connecticut Avenue. The path arches north of the road to that corner.
+    # The old anchor sat on the airport, so these finds were drawn there.
+    ("meadow-hill", "Meadow Hill", 41.17234, -71.56902, 80,
      ["meadow hill", "meadow hills"]),
     ("beacon-hill", "Beacon Hill", 41.1757, -71.5910, 250,
      ["beacon hill", "beacon hollow"]),
@@ -501,7 +504,10 @@ def main():
     for pid, _name, lat, lng, radius, _aliases in PLACES:
         if pid not in TRAIL_PLACES:
             continue
-        lines = ways_near(lat, lng, min(800, max(radius + 160, 520)))
+        # Meadow Hill's own path passes the anchor. A wide search also
+        # reaches the airport footways and pulled every find onto them.
+        search = 80 if pid == "meadow-hill" else min(800, max(radius + 160, 520))
+        lines = ways_near(lat, lng, search)
         net = index_lines(lines)
         if net[0] >= 120:
             trail_networks[pid] = net
