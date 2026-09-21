@@ -34,8 +34,9 @@ TRAIL_PLACES = {
     "beacon-hill", "harrison", "old-mill", "payne-greenway", "middle-pond",
     "long-lot", "solviken", "martin-lots", "hyland", "murphy-cormier",
     "adrian-mitchell", "gaffney", "jones-trail", "magellan", "greenway",
-    "marsh-hawk", "painted-rock", "mohegan-bluffs",
+    "marsh-hawk", "mohegan-bluffs",
     "beach-ave", "north-light", "payne-overlook", "atwood", "overlook",
+    "andys-way",
 }
 
 # id, name, lat, lng, spread meters, aliases
@@ -43,7 +44,9 @@ TRAIL_PLACES = {
 PLACES = [
     ("rodmans-hollow", "Rodman's Hollow", 41.1525, -71.5845, 480,
      ["rodmans hollow", "rodman hollow", "rodmans", "rodman", "roadmans hollow", "roadman hollow", "rothmans hollow", "rothman", "rodmsn"]),
-    ("enchanted-forest", "Enchanted Forest", 41.1732, -71.5738, 320,
+    # Inside Nathan Mott Park, at the west end of the airport runway
+    # and down to Old Mill Road. Not the woods by Meadow Hill.
+    ("enchanted-forest", "Enchanted Forest", 41.16810, -71.58550, 80,
      ["enchanted forest", "enchanted forrest", "enchanted", "haunted forest", "hanted forest"]),
     ("the-maze", "Clay Head Maze", 41.2075, -71.5645, 420,
      ["clay head maze", "clayhead maze", "the maze", "middle earth", "maze"]),
@@ -79,11 +82,13 @@ PLACES = [
      ["sachem pond", "sachem", "little sachem"]),
     ("hodge", "Hodge Family Preserve", 41.2145, -71.5730, 380,
      ["hodge family", "hodge preserve", "hodge wildlife", "hodges", "hodge"]),
-    ("turnip-farm", "Turnip Farm", 41.1662, -71.5748, 260,
+    # Just north of Old Mill Road, the turn off the Enchanted Forest path.
+    ("turnip-farm", "Turnip Farm", 41.16560, -71.58800, 80,
      ["turnip farm", "turnip trail", "turnip"]),
-    ("nathan-mott", "Nathan Mott Park", 41.1725, -71.5742, 340,
+    # The park west of the runway, plus the trail north toward Beacon Hill.
+    ("nathan-mott", "Nathan Mott Park", 41.16810, -71.58550, 80,
      ["nathan mott", "nathaniel mott", "nathen mott", "nathans mott", "nathan motts", "motts park", "mott park", "mott trail", "mott nature", "nathan s mott"]),
-    ("loffredo", "Loffredo Loop", 41.1718, -71.5732, 220,
+    ("loffredo", "Loffredo Loop", 41.17130, -71.58900, 60,
      ["loffredo", "lofredo", "leffredo", "lofreddo", "lored o", "loredo"]),
     ("win-dodge", "Win Dodge Preserve", 41.1578, -71.5930, 300,
      ["winfield dodge", "winn dodge", "win dodge", "windodge", "dodge preserve", "dodge farm", "dodge"]),
@@ -91,7 +96,8 @@ PLACES = [
      ["lewis dickens", "elizabeth dickens", "dickens farm", "dickens trail", "dickens", "dickenson"]),
     ("west-beach", "West Beach", 41.1760, -71.6065, 650,
      ["west side beach", "west side rd", "west side road", "westside", "west beach", "west side"]),
-    ("andys-way", "Andy's Way", 41.1695, -71.6040, 220,
+    # Dirt lane off Corn Neck Road to the east-side marsh. Not the west shore.
+    ("andys-way", "Andy's Way", 41.20012, -71.57227, 40,
      ["andys way", "andy s way", "andys"]),
     ("dinghy-beach", "Dinghy Beach", 41.1802, -71.5718, 200,
      ["dinghy beach", "dingy beach", "dinghey beach", "dinghy", "dingy"]),
@@ -107,14 +113,15 @@ PLACES = [
      ["southwest point", "sw point", "south west point"]),
     ("transfer-station", "Transfer Station Beach", 41.1845, -71.6045, 220,
      ["transfer station", "dump beach", "the dump", "dump"]),
-    ("beach-ave", "Beach Avenue", 41.1840, -71.5640, 240,
+    ("beach-ave", "Beach Avenue", 41.17670, -71.57150, 40,
      ["beach avenue", "beach ave"]),
     # West trailhead is the sign on Old Town Road a quarter mile past
     # Connecticut Avenue. The path arches north of the road to that corner.
     # The old anchor sat on the airport, so these finds were drawn there.
     ("meadow-hill", "Meadow Hill", 41.17234, -71.56902, 80,
      ["meadow hill", "meadow hills"]),
-    ("beacon-hill", "Beacon Hill", 41.1757, -71.5910, 250,
+    # The road up to the stone tower, not the greenway a kilometer south.
+    ("beacon-hill", "Beacon Hill", 41.17566, -71.59142, 80,
      ["beacon hill", "beacon hollow"]),
     # Great Salt Pond to Beacon Hill: the path from Jane Lane at West Side
     # Road, past Island Cemetery, to Beacon Hill Road. The old anchor was
@@ -125,15 +132,16 @@ PLACES = [
     # that centerline, not the greenway paths that only cross it.
     ("old-mill", "Old Mill Road", 41.16475, -71.59232, 40,
      ["old mill"]),
-    ("pilot-hill", "Pilot Hill", 41.1576, -71.5628, 200,
+    # Where Pilot Hill Road meets Spring Street and Mohegan Trail.
+    ("pilot-hill", "Pilot Hill", 41.15250, -71.55985, 70,
      ["pilot hill"]),
-    ("payne-greenway", "Payne Road Greenway", 41.1608, -71.5660, 300,
+    ("payne-greenway", "Payne Road Greenway", 41.16013, -71.56546, 80,
      ["payne road", "payne rd", "paynes road", "payne s road", "paynes rd", "payne"]),
     ("payne-overlook", "Payne Overlook", 41.1568, -71.5528, 160,
      ["payne overlook", "paynes overlook", "edward s payne", "edward payne"]),
     ("atwood", "Atwood Overlook", 41.1508, -71.5665, 180,
      ["atwood overlook", "attwood overlook", "atwood", "attwood"]),
-    ("ocean-view", "Ocean View", 41.1672, -71.5548, 200,
+    ("ocean-view", "Ocean View", 41.17148, -71.55524, 50,
      ["ocean view", "ocean pavilion", "oceanic pavilion"]),
     # West side of Corn Neck Road, above Sachem Pond. The old pin was
     # in the ocean farther south, and every find was dragged to New Harbor.
@@ -147,7 +155,8 @@ PLACES = [
      ["estas park", "esta s park", "estas"]),
     ("negus", "Negus Park", 41.1716, -71.5602, 70,
      ["negus"]),
-    ("ball-obrien", "Ball O'Brien Park", 41.1738, -71.5628, 80,
+    # On West Side Road beside Island Cemetery, not the downtown pocket park.
+    ("ball-obrien", "Ball O'Brien Park", 41.18151, -71.58137, 70,
      ["ball o brien", "ball obrien", "o brien park", "obrien park", "nicholas ball", "nichols park", "power company"]),
     ("harbor-pond", "Harbor Pond", 41.1770, -71.5662, 160,
      ["harbor pond"]),
@@ -167,7 +176,8 @@ PLACES = [
      ["ballards", "ballard s"]),
     ("corn-neck", "Corn Neck", 41.2020, -71.5625, 400,
      ["corn neck", "corner neck", "cornneck"]),
-    ("lakeside", "Lakeside Drive", 41.1635, -71.5685, 200,
+    # The greenway entrance on Lakeside Drive, by Fresh Pond.
+    ("lakeside", "Lakeside Drive", 41.15915, -71.57753, 80,
      ["lakeside"]),
     ("middle-pond", "Middle Pond", 41.2158, -71.5747, 200,
      ["middle pond"]),
@@ -178,7 +188,8 @@ PLACES = [
     # Beside Harrison Trail, above New Harbor. Not the spot near Old Town Road.
     ("island-cemetery", "Island Cemetery", 41.17902, -71.58149, 70,
      ["island cemetery", "block island cemetery", "the cemetery", "cemetery"]),
-    ("indian-cemetery", "Indian Cemetery", 41.1688, -71.5705, 80,
+    # At Isaacs Corner, south of Old Mill. Not the spot nearer town.
+    ("indian-cemetery", "Indian Cemetery", 41.16316, -71.57920, 50,
      ["indian cemetery", "indian cemetary"]),
     ("dodge-cemetery", "Dodge Cemetery", 41.1663, -71.5964, 80,
      ["dodge cemetery", "dodge cemetary"]),
@@ -218,9 +229,8 @@ PLACES = [
      ["hyland"]),
     ("murphy-cormier", "Murphy-Cormier Trail", 41.1688, -71.5810, 220,
      ["murphy cormier", "murphy comier", "cormier"]),
-    # Leaves Ball O'Brien Park and runs inland. The old anchor was on
-    # the airport, so the dots joined that cluster.
-    ("adrian-mitchell", "Adrian Mitchell Trail", 41.17435, -71.56637, 80,
+    # The path that leaves the real Ball O'Brien Park toward New Harbor.
+    ("adrian-mitchell", "Adrian Mitchell Trail", 41.17993, -71.57788, 80,
      ["adrian mitchell", "mitchell trail"]),
     ("gaffney", "Gaffney Trail", 41.1675, -71.5775, 200,
      ["gaffney"]),
@@ -238,7 +248,8 @@ PLACES = [
      ["mosquito beach", "mosquito"]),
     ("marsh-hawk", "Marsh Hawk Hollow", 41.1618, -71.5815, 200,
      ["marsh hawk"]),
-    ("painted-rock", "Painted Rock", 41.2080, -71.5605, 80,
+    # On Mohegan Trail above the south shore, not Clay Head.
+    ("painted-rock", "Painted Rock", 41.15480, -71.55500, 40,
      ["painted rock"]),
     ("bi-school", "Block Island School", 41.1648, -71.5612, 60,
      ["block island school", "the school"]),
@@ -407,27 +418,52 @@ def meters_between(a, b):
     return math.hypot(north, east)
 
 
+# Roads drawn so a named place can follow the pavement. They stay out of
+# the shared footpath list, or nearby trails would smear along them.
+ROAD_ONLY = {"Old Mill Road", "Andy's Way", "Beach Avenue", "Beacon Hill Road"}
+
+# These preserves were grabbing every path within half a kilometer, including
+# the airport sidewalks and Meadow Hill. Each one keeps only its own ways.
+PLACE_OSM = {
+    "enchanted-forest": {415341924, 415574724, 415574748, 415574729},
+    "nathan-mott": {415341924, 415341919},
+    "turnip-farm": {415574748, 415574724, 1309978130, 415341928},
+    "loffredo": {415341922},
+    "payne-greenway": {415341931},
+    "adrian-mitchell": {1511115496},
+    "beacon-hill": {415341929},
+}
+PLACE_ROAD = {
+    "old-mill": "Old Mill Road",
+    "andys-way": "Andy's Way",
+    "beach-ave": "Beach Avenue",
+    "beacon-hill": "Beacon Hill Road",
+}
+
+
 def load_trail_lines():
     geo = json.loads(TRAILS.read_text())
     lines = []
     named = {}
+    by_osm = {}
     for feature in geo["features"]:
+        props = feature.get("properties") or {}
         coords = [(point[1], point[0]) for point in feature["geometry"]["coordinates"]]
         if len(coords) < 2:
             continue
-        name = (feature.get("properties") or {}).get("name") or ""
-        # The road is only for Old Mill finds. Leaving it in the shared
-        # path list would smear nearby trails along the pavement.
-        if name == "Old Mill Road":
-            named.setdefault(name, []).append(coords)
-            continue
-        lines.append(coords)
+        name = props.get("name") or ""
+        osm = props.get("osm")
+        if isinstance(osm, int):
+            by_osm[osm] = coords
         if name:
             named.setdefault(name, []).append(coords)
-    return lines, named
+        if name in ROAD_ONLY:
+            continue
+        lines.append(coords)
+    return lines, named, by_osm
 
 
-TRAIL_LINES, NAMED_LINES = load_trail_lines()
+TRAIL_LINES, NAMED_LINES, TRAIL_BY_OSM = load_trail_lines()
 
 
 def ways_near(lat, lng, radius_m):
@@ -555,10 +591,11 @@ def main():
         # greenway, the long paths only.
         if pid == "greenway":
             lines = [line for line in TRAIL_LINES if sum(meters_between(a, b) for a, b in zip(line, line[1:])) >= 200]
-        elif pid == "old-mill":
-            lines = NAMED_LINES.get("Old Mill Road", [])
+        elif pid in PLACE_OSM or pid in PLACE_ROAD:
+            lines = [TRAIL_BY_OSM[i] for i in PLACE_OSM.get(pid, ()) if i in TRAIL_BY_OSM]
+            lines.extend(NAMED_LINES.get(PLACE_ROAD.get(pid, ""), []))
         else:
-            tight = {"meadow-hill": 80, "harrison": 80, "adrian-mitchell": 90}
+            tight = {"meadow-hill": 80, "harrison": 80}
             search = tight.get(pid, min(800, max(radius + 160, 520)))
             lines = ways_near(lat, lng, search)
         net = index_lines(lines)
