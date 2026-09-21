@@ -232,8 +232,13 @@ PLACES = [
     # The path that leaves the real Ball O'Brien Park toward New Harbor.
     ("adrian-mitchell", "Adrian Mitchell Trail", 41.17993, -71.57788, 80,
      ["adrian mitchell", "mitchell trail"]),
-    ("gaffney", "Gaffney Trail", 41.1675, -71.5775, 200,
-     ["gaffney"]),
+    # North-south path from Old Mill Road up to Beacon Hill Road,
+    # past the white-fence farm (Beacon Hollow). Not the east side
+    # of the runway, and not the Fresh Pond loop.
+    # "jim gaffney" / "gaffney greenway" have to beat the generic
+    # "greenway" and "fresh pond" aliases, which are longer than "gaffney".
+    ("gaffney", "Gaffney Trail", 41.16984, -71.58949, 60,
+     ["gaffney greenway", "jim gaffney", "gafffney", "gaffney"]),
     ("jones-trail", "Jones Trail", 41.1510, -71.5825, 200,
      ["jones trail"]),
     ("magellan", "Magellan's Tree Trail", 41.1585, -71.5880, 180,
@@ -432,6 +437,9 @@ PLACE_OSM = {
     "payne-greenway": {415341931},
     "adrian-mitchell": {1511115496},
     "beacon-hill": {415341929},
+    # Between Beacon Hill Road and Old Mill, past the white-fence farm.
+    # The old search also reached the airport sidewalks and Meadow Hill.
+    "gaffney": {415341919},
 }
 PLACE_ROAD = {
     "old-mill": "Old Mill Road",
