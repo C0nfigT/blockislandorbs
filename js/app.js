@@ -225,6 +225,17 @@ function focusMonths() {
   return [seasonNow().month];
 }
 
+const FRESH_DAYS = 14;
+
+function listingAge(iso, today) {
+  const year = Number(iso.slice(0, 4));
+  const month = Number(iso.slice(5, 7));
+  const day = Number(iso.slice(8, 10));
+  const then = Date.UTC(year, month - 1, day);
+  const now = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((now - then) / 86400000);
+}
+
 function suggestPlan() {
   const { year, month } = seasonNow();
   const focus = focusMonths();
@@ -234,11 +245,21 @@ function suggestPlan() {
   recent.add(month);
   recent.add(month === 1 ? 12 : month - 1);
 
+  const today = new Date();
   const historic = new Map();
   const recentCounts = new Map();
+  const fresh = new Map();
   for (let i = 0; i < data.finds.length; i++) {
     const find = data.finds[i];
-    if (!find.place || !find.month) continue;
+    if (!find.place) continue;
+    if (find.date && find.date.slice(5) !== "01-01") {
+      const age = listingAge(find.date, today);
+      if (age >= 0 && age <= FRESH_DAYS) {
+        const prev = fresh.get(find.place);
+        if (!prev || find.date > prev) fresh.set(find.place, find.date);
+      }
+    }
+    if (!find.month) continue;
     if (find.year < year && state.years.has(find.year) && focusSet.has(find.month)) {
       historic.set(find.place, (historic.get(find.place) || 0) + 1);
     }
@@ -249,19 +270,24 @@ function suggestPlan() {
   }
 
   let places = [];
+  let setAside = 0;
   for (const [id, past] of historic) {
     const nowCount = recentCounts.get(id) || 0;
     if (past < 2 || nowCount > Math.max(1, Math.floor(past / 4))) continue;
+    if (fresh.has(id)) {
+      setAside += 1;
+      continue;
+    }
     places.push({ id, past, nowCount, score: past - nowCount * 3 });
   }
   places.sort((a, b) => b.score - a.score || a.nowCount - b.nowCount);
   if (!places.length) {
     places = [...historic.entries()]
       .map(([id, past]) => ({ id, past, nowCount: recentCounts.get(id) || 0, score: past }))
-      .filter((place) => place.past >= 1 && place.nowCount === 0)
+      .filter((place) => place.past >= 1 && place.nowCount === 0 && !fresh.has(place.id))
       .sort((a, b) => b.past - a.past);
   }
-  return { year, month, focus: focusSet, recent, places: places.slice(0, 8) };
+  return { year, month, focus: focusSet, recent, fresh, setAside, places: places.slice(0, 8) };
 }
 
 function visibleFinds() {
@@ -350,13 +376,18 @@ function renderPlaces(finds) {
   }
   const hint = $("suggest-hint");
   if (!plan) {
-    hint.textContent = "Places with orbs in this month in earlier years, and few reports in the current month or the month before.";
+    hint.textContent = "Places with orbs in this month in earlier years, few reports lately, and none in the last two weeks.";
   } else if (!plan.places.length) {
-    hint.textContent = "Nothing quiet enough. Turn earlier years back on, or pick another month.";
+    hint.textContent = plan.setAside
+      ? "Nothing quiet enough. Places with a find in the last two weeks were set aside."
+      : "Nothing quiet enough. Turn earlier years back on, or pick another month.";
   } else {
     const names = [...plan.focus].sort((a, b) => a - b).map((value) => MONTHS[value - 1]).join(", ");
     const recentNames = [...plan.recent].sort((a, b) => a - b).map((value) => MONTHS[value - 1]).join("–");
-    hint.textContent = `${names} in years before ${plan.year}, with few reports in ${recentNames} ${plan.year}. The map shows those older finds.`;
+    const skipped = plan.setAside
+      ? ` ${plan.setAside} ${plan.setAside === 1 ? "place had a find" : "places had a find"} in the last two weeks, so ${plan.setAside === 1 ? "it is" : "they are"} left out.`
+      : "";
+    hint.textContent = `${names} in years before ${plan.year}, with few reports in ${recentNames} ${plan.year}.${skipped} The map shows those older finds.`;
   }
   return counts;
 }
@@ -430,7 +461,7 @@ function lede() {
   if (state.suggest && view.plan) {
     const names = view.plan.places.map((place) => placeName(place.id)).slice(0, 3).join(", ");
     return names
-      ? `Suggested search: ${names}${view.plan.places.length > 3 ? "…" : ""}. Historic ${[...view.plan.focus].map((month) => MONTHS[month - 1]).join(", ")} finds, quiet lately.`
+      ? `Suggested search: ${names}${view.plan.places.length > 3 ? "…" : ""}. Historic ${[...view.plan.focus].map((month) => MONTHS[month - 1]).join(", ")} finds, none reported there in the last two weeks.`
       : "Suggested search found no quiet historic spots for this month.";
   }
   const years = [...state.years].sort((a, b) => a - b);
