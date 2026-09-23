@@ -637,13 +637,14 @@ function bind() {
     apply();
   });
 
+  $("locate").addEventListener("click", toggleLocation);
   $("panel-toggle").addEventListener("click", () => setPanelOpen(true));
   $("show-map").addEventListener("click", () => setPanelOpen(false));
   $("reset-filters").addEventListener("click", resetFilters);
 }
 
 async function start() {
-  const response = await fetch("data/finds.json?v=19");
+  const response = await fetch("data/finds.json?v=22");
   if (!response.ok) throw new Error("Could not load find data");
   data = await response.json();
   state.places = new Map(data.places.map((place) => [place.id, place]));
@@ -664,6 +665,94 @@ async function start() {
   } catch (error) {
     console.error(error);
   }
+}
+
+let locationWatch = null;
+let locationMarker = null;
+let locationHalo = null;
+
+function setLocate(on, note) {
+  const button = $("locate");
+  button.setAttribute("aria-pressed", String(on));
+  button.setAttribute("aria-label", on ? "Hide my location" : "Show my location");
+  $("locate-note").textContent = note || "";
+}
+
+function clearLocation() {
+  if (locationWatch != null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(locationWatch);
+  }
+  locationWatch = null;
+  if (locationMarker) {
+    map.removeLayer(locationMarker);
+    locationMarker = null;
+  }
+  if (locationHalo) {
+    map.removeLayer(locationHalo);
+    locationHalo = null;
+  }
+}
+
+function onLocate(position) {
+  const latlng = L.latLng(position.coords.latitude, position.coords.longitude);
+  if (!ISLAND.pad(0.04).contains(latlng)) {
+    if (!locationMarker) {
+      clearLocation();
+      setLocate(false, "That fix is off Block Island, so it isn’t shown.");
+    }
+    return;
+  }
+  const accuracy = Math.min(Math.max(position.coords.accuracy || 24, 12), 250);
+  if (!locationMarker) {
+    locationHalo = L.circle(latlng, {
+      radius: accuracy,
+      color: "#1a6cff",
+      weight: 1,
+      fillColor: "#1a6cff",
+      fillOpacity: 0.16,
+      interactive: false,
+    }).addTo(map);
+    locationMarker = L.circleMarker(latlng, {
+      radius: 7,
+      color: "#fff",
+      weight: 3,
+      fillColor: "#1a6cff",
+      fillOpacity: 1,
+      interactive: false,
+    }).addTo(map);
+    map.flyTo(latlng, Math.max(map.getZoom(), 16), { duration: 0.45 });
+    setLocate(true, "");
+    return;
+  }
+  locationMarker.setLatLng(latlng);
+  locationHalo.setLatLng(latlng);
+  locationHalo.setRadius(accuracy);
+}
+
+function onLocateError(error) {
+  clearLocation();
+  const message = error && error.code === 1
+    ? "Location is blocked. Allow it for this site in the phone settings."
+    : "Couldn’t get a location fix.";
+  setLocate(false, message);
+}
+
+function toggleLocation() {
+  if (locationWatch != null) {
+    clearLocation();
+    setLocate(false, "");
+    return;
+  }
+  if (!navigator.geolocation) {
+    setLocate(false, "This browser can’t share your location.");
+    return;
+  }
+  setLocate(true, "Finding you…");
+  locationWatch = navigator.geolocation.watchPosition(onLocate, onLocateError, {
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 5000,
+  });
 }
 
 function raiseTrails() {

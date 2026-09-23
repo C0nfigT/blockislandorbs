@@ -338,6 +338,8 @@ section { margin-top: 18px; }
 
 .panel-toggle { display: none; }
 
+.locate, .locate-note { display: none; }
+
 .place-label span {
   display: inline-block;
   padding: 1px 4px;
@@ -491,4 +493,47 @@ section { margin-top: 18px; }
   }
 
   #panel.is-open ~ .panel-toggle { display: none; }
+
+  .locate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    z-index: 600;
+    left: 12px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--sea-deep);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+
+  .locate[aria-pressed="true"] {
+    background: #1a6cff;
+    color: #fff;
+  }
+
+  .locate-note:not(:empty) {
+    display: block;
+    position: absolute;
+    z-index: 600;
+    left: 12px;
+    bottom: calc(128px + env(safe-area-inset-bottom));
+    max-width: min(260px, calc(100% - 88px));
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    font: 500 0.82rem var(--sans);
+  }
+
+  #panel.is-open ~ .locate,
+  #panel.is-open ~ .locate-note { display: none; }
 }
