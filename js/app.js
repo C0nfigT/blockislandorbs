@@ -644,7 +644,7 @@ function bind() {
 }
 
 async function start() {
-  const response = await fetch("data/finds.json?v=22");
+  const response = await fetch("data/finds.json?v=23");
   if (!response.ok) throw new Error("Could not load find data");
   data = await response.json();
   state.places = new Map(data.places.map((place) => [place.id, place]));
