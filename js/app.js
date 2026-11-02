@@ -529,9 +529,22 @@ function setPanelOpen(open) {
   }
 }
 
+function defaultYears() {
+  return new Set(state.allYears.slice(-2));
+}
+
+function defaultMonths(today = new Date()) {
+  const current = today.getMonth() + 1;
+  const months = new Set();
+  for (let i = 0; i < 3; i++) {
+    months.add(((current - 1 - i) % 12 + 12) % 12 + 1);
+  }
+  return months;
+}
+
 function resetFilters() {
-  state.years = new Set(state.allYears);
-  state.months = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  state.years = defaultYears();
+  state.months = defaultMonths();
   state.q = "";
   state.suggest = false;
   $("q").value = "";
@@ -655,7 +668,8 @@ async function start() {
     find._search = fold(`${find.where} ${find.title} ${placeName(find.place)}`);
   }
   state.allYears = [...new Set(data.finds.map((find) => find.year))].sort((a, b) => a - b);
-  state.years = new Set(state.allYears);
+  state.years = defaultYears();
+  state.months = defaultMonths();
   buildFilters();
   bind();
   apply();
